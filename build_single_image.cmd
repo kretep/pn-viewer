@@ -1,0 +1,1 @@
+generator\generate_tiles.py example_scene\Panorama.jpg

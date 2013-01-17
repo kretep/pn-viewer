@@ -8,12 +8,58 @@ import json
 import os
 
 def main(args):
+    rel_path = args[1]
+    if os.path.splitext(rel_path)[1] == '.js':
+        process_scene(rel_path)
+    else:
+        process_single_image(rel_path)
+
+
+def process_single_image(rel_path):
     
+    # Get some folders straight
+    base_folder = os.getcwd()
+    image_folder, image_filename = os.path.split(rel_path)
+    image_path = os.path.join(base_folder, rel_path)
+    
+    # Determine tile folder name
+    tile_folder = os.path.splitext(image_filename)[0]
+    
+    # Open the image to determine its size
+    im = Image.open(image_path)
+    width, height = im.size
+    
+    # Process single image scene template
+    file = open("single_image_template.js", 'r')
+    data = file.read()
+    file.close()
+    data = data.replace("#tile_folder#", tile_folder)
+    data = data.replace("#image_path#", rel_path.replace("\\", "/"))
+    data = data.replace("#width#", str(width))
+    data = data.replace("#height#", str(height))
+    
+    # Save as new scene
+    scene_filename = tile_folder + ".js"
+    path = os.path.join(base_folder, scene_filename)
+    if not os.path.exists(path):
+        file = open(path, 'w')
+        file.write(data)
+        file.close()
+        print "Written scene to", path
+        
+        # Process the scene
+        process_scene(scene_filename)
+        
+    else:
+        print "Scene file already exists:", path
+    
+    
+def process_scene(rel_path):
+
     # Load scene
     base_folder = os.getcwd()
-    scene_relpath = args[1]
-    scene_folder, scene_filename = os.path.split(scene_relpath)
-    scene_path = os.path.join(base_folder, scene_relpath)
+    scene_folder, scene_filename = os.path.split(rel_path)
+    scene_path = os.path.join(base_folder, rel_path)
     data_string = ''
     for line in open(scene_path).readlines():
         data_string += line
@@ -98,7 +144,7 @@ def main(args):
     file = open("template.html", 'r')
     data = file.read()
     file.close()
-    data = data.replace("#scene_file#", scene_relpath)
+    data = data.replace("#scene_file#", rel_path)
     title, ext = os.path.splitext(scene_filename)
     path = os.path.join(base_folder, scene_folder, title + ".html")
     if not os.path.exists(path):
