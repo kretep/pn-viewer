@@ -29,6 +29,12 @@ function pnimage(image) {
     this.im2SceneScaleX = this.w / image.width;
     this.im2SceneScaleY = this.h / image.height;
     
+    // Format (extension)
+    this.format = image.format;
+    if (typeof this.format == 'undefined') {
+        this.format = 'jpg';
+    }
+    
     /** Initializes the tiles by creating the pntile grids for each zoom level.
      *  The tile images will not be downloaded yet.
      */
@@ -57,8 +63,8 @@ function pnimage(image) {
                     // Calculate number of tiles at this zoom level
                     scaledW = Math.floor(wholeScaleX * this.width)
                     scaledH = Math.floor(wholeScaleY * this.height)
-                    wi = Math.floor(scaledW / scene.scene.tilewidth) + 1
-                    hi = Math.floor(scaledH / scene.scene.tileheight) + 1
+                    wi = Math.floor((scaledW-1) / scene.scene.tilewidth) + 1
+                    hi = Math.floor((scaledH-1) / scene.scene.tileheight) + 1
                     
                     // Loop through the tile space to build the tile grid
                     grid = [];
@@ -67,7 +73,7 @@ function pnimage(image) {
                         for (xi=0; xi<wi; xi++) {
                             src = scene.scene.tilefolder + '/tile_' +
                             image_index + '_' + zoom_index + '_' +
-                            xi + '_' + yi + '.jpg';
+                            xi + '_' + yi + '.' + this.format;
                             tile = new pntile(context, src);
                             row[xi] = tile;
                         }

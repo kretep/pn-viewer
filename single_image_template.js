@@ -13,7 +13,8 @@ scene = {"scene": {
       "x": 0,
       "y": 0,
       "w": #width#,
-      "h": #height#
+      "h": #height#,
+      "format": "#format#"
     }
   ],
   "zoomlevels": [

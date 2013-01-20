@@ -29,6 +29,17 @@ def process_single_image(rel_path):
     im = Image.open(image_path)
     width, height = im.size
     
+    # Determine output format
+    extension = os.path.splitext(image_filename)[1]
+    extension = extension.lower()
+    extension = extension[1:] # cut of separator
+    print extension
+    if not extension in ["jpg", "png", "gif"]:
+        if extension in ["tif", "tiff"]:
+            extension = "png"
+        else:
+            extension = "jpg"
+    
     # Process single image scene template
     file = open("single_image_template.js", 'r')
     data = file.read()
@@ -37,6 +48,7 @@ def process_single_image(rel_path):
     data = data.replace("#image_path#", rel_path.replace("\\", "/"))
     data = data.replace("#width#", str(width))
     data = data.replace("#height#", str(height))
+    data = data.replace("#format#", extension)
     
     # Save as new scene
     scene_filename = tile_folder + ".js"
@@ -82,7 +94,12 @@ def process_scene(rel_path):
     # Process images
     image_index = 0
     for image in scene["images"]:
-        im = Image.open(image["path"])
+        # Path and extension
+        filename = image["path"]
+        extension = image["format"]
+        
+        # Load image
+        im = Image.open(filename)
         width, height = im.size
         
         im2SceneScaleX = image["w"] / width
@@ -104,39 +121,53 @@ def process_scene(rel_path):
                     # Resize
                     newSize = (int(wholeScaleX * width),
                                int(wholeScaleY * height))
-                    imResized = im.resize(newSize, Image.BICUBIC)
+                    #imResized = im.resize(newSize, Image.BICUBIC)
+                    
+                    hrTileWidth = tileWidth / wholeScaleX
+                    hrTileHeight = tileHeight / wholeScaleY
+                    hrLastBitX = int((width/hrTileWidth - int(width/hrTileWidth)) * hrTileWidth)
+                    hrLastBitY = int((height/hrTileHeight - int(height/hrTileHeight)) * hrTileHeight)
                     
                     # Calculate part of image in last tiles
                     lastBitX = int((1.0*newSize[0]/tileWidth - int(newSize[0]/tileWidth)) * tileWidth)
                     lastBitY = int((1.0*newSize[1]/tileHeight - int(newSize[1]/tileHeight)) * tileHeight)
                     
                     # Create and write tiles
-                    wi = int(newSize[0] / tileWidth) + 1
-                    hi = int(newSize[1] / tileHeight) + 1
-                    print "Image %s, zoomlevel %s: %s pixels, %s x %s tiles" % (image_index, zoom_index, newSize, wi, hi)
+                    wi = int((newSize[0]-1) / tileWidth) + 1
+                    hi = int((newSize[1]-1) / tileHeight) + 1
+                    #wi = int((width-1) / hrTileWidth) + 1
+                    #hi = int((height-1) / hrTileWidth) + 1
+                    print "Image %s, zoomlevel %s (%s): %s pixels, %sx%s tiles" % (image_index, zoom_index, zoomlevelScale, newSize, wi, hi)
                     for yi in range(hi):
                         for xi in range(wi):
-                            # Set up crop box
-                            cropBox = [xi * tileWidth,
-                                       yi * tileHeight,
-                                       xi * tileWidth,
-                                       yi * tileHeight]
-                            if xi == wi - 1:
-                                cropBox[2] += lastBitX
+                            
+                            # Region & output size
+                            hrRegion = [xi * hrTileWidth,
+                                        yi * hrTileHeight,
+                                        xi * hrTileWidth,
+                                        yi * hrTileHeight]
+                            outputSize = [tileWidth, tileHeight]
+                            if xi == wi - 1 and lastBitX > 0:
+                                hrRegion[2] += hrLastBitX
+                                outputSize[0] = lastBitX
                             else:
-                                cropBox[2] += tileWidth
-                            if yi == hi - 1:
-                                cropBox[3] += lastBitY
+                                hrRegion[2] += hrTileWidth
+                            if yi == hi - 1 and lastBitY > 0:
+                                hrRegion[3] += hrLastBitY
+                                outputSize[1] = lastBitY
                             else:
-                                cropBox[3] += tileHeight
+                                hrRegion[3] += hrTileHeight
                             
                             # Crop and save
-                            imCropped = imResized.crop(cropBox)
-                            filename = "tile_%s_%s_%s_%s.jpg" % (image_index, zoom_index, xi, yi)
+                            imCropped = im.transform(tuple(outputSize),
+                                                     Image.EXTENT,
+                                                     hrRegion,
+                                                     Image.BICUBIC)
+                            filename = "tile_%s_%s_%s_%s.%s" % (image_index, zoom_index, xi, yi, extension)
                             path = os.path.join(tile_path, filename)
                             if not os.path.exists(path):
                                 imCropped.save(path)
-            
+                                
             zoom_index += 1
         image_index += 1
     
