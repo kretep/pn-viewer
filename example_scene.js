@@ -2,6 +2,8 @@ scene = {"scene": {
   "tilefolder": "example_tiles",
   "tilewidth": 200,
   "tileheight": 200,
+  "canvaswidth": 800,
+  "canvasheight": 400,
   "vpx": 200,
   "vpy": -6,
   "level": 1,
@@ -13,7 +15,8 @@ scene = {"scene": {
       "x": 0,
       "y": 0,
       "w": 10684,
-      "h": 3084
+      "h": 3084,
+      "format": "jpg"
     },
     {
       "path": "example_scene/DSC13093.JPG",
@@ -22,7 +25,8 @@ scene = {"scene": {
       "x": 4634.44,
       "y": 2173.58,
       "w": 281.6,
-      "h": 211.2
+      "h": 211.2,
+      "format": "jpg"
     },
     {
       "path": "example_scene/DSC13094.JPG",
@@ -31,7 +35,8 @@ scene = {"scene": {
       "x": 7418.57,
       "y": 1127.77,
       "w": 239.36,
-      "h": 179.52
+      "h": 179.52,
+      "format": "jpg"
     },
     {
       "path": "example_scene/DSC13096.JPG",
@@ -40,7 +45,8 @@ scene = {"scene": {
       "x": 7934.24,
       "y": 1217.5,
       "w": 253.44,
-      "h": 190.08
+      "h": 190.08,
+      "format": "jpg"
     },
     {
       "path": "example_scene/DSC13114.JPG",
@@ -49,7 +55,8 @@ scene = {"scene": {
       "x": 542.0256,
       "y": 327.8192,
       "w": 1145.5488,
-      "h": 859.1616
+      "h": 859.1616,
+      "format": "jpg"
     },
     {
       "path": "example_scene/DSC13115.JPG",
@@ -58,7 +65,8 @@ scene = {"scene": {
       "x": 2357.5948,
       "y": 948.5136,
       "w": 392.5504,
-      "h": 294.4128
+      "h": 294.4128,
+      "format": "jpg"
     }
   ],
   "labels": [

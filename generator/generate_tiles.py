@@ -9,20 +9,20 @@ import os
 
 def main(args):
     rel_path = args[1]
+    template_path = 'single_image_template.js'
+    if len(args) > 2:
+        template_path = args[2]
     if os.path.splitext(rel_path)[1] == '.js':
         process_scene(rel_path)
     else:
-        process_single_image(rel_path)
+        process_single_image(rel_path, template_path)
 
-
-def process_single_image(rel_path):
+def process_single_image(rel_path, template_path):
     
-    # Get some folders straight
+    # Get some folders and paths straight
     base_folder = os.getcwd()
     image_folder, image_filename = os.path.split(rel_path)
     image_path = os.path.join(base_folder, rel_path)
-    
-    # Determine tile folder name
     tile_folder = os.path.splitext(image_filename)[0]
     
     # Open the image to determine its size
@@ -33,56 +33,87 @@ def process_single_image(rel_path):
     extension = os.path.splitext(image_filename)[1]
     extension = extension.lower()
     extension = extension[1:] # cut of separator
-    print extension
     if not extension in ["jpg", "png", "gif"]:
         if extension in ["tif", "tiff"]:
             extension = "png"
         else:
             extension = "jpg"
+    print "Output file format:", extension
+    
+    # Find the canvas size in the template (default is 800x600)
+    template_file = open(template_path, 'r')
+    data = template_file.read()
+    template_file.close()
+    canvas_width = findIntValueInString(data, '"canvaswidth": *,', '*', None)
+    canvas_height = findIntValueInString(data, '"canvasheight": *,', '*', None)
+    target_width = canvas_width
+    if target_width == None:
+        target_width = 800
+    target_height = canvas_height
+    if target_height == None:
+        target_height = 400
+    
+    # Auto zoom levels
+    zltext = ""
+    scale = 1.0
+    zoomlevels = []
+    zoomlevels.append(scale)
+    while scale*width > target_width and scale*height > target_height:
+        scale /= 2
+        zoomlevels.append(scale)
+    if canvas_width == None:
+        canvas_width = int(round(scale * width))
+    if canvas_height == None:
+        canvas_height = int(round(scale * height))
+    zoomlevels.sort()
+    for scale in zoomlevels:
+        zltext += """{
+      "scale": %s,
+      "images": [0],
+      "labels": []
+    },""" % (scale,)
+    zltext = zltext[:-1]
     
     # Process single image scene template
-    file = open("single_image_template.js", 'r')
-    data = file.read()
-    file.close()
     data = data.replace("#tile_folder#", tile_folder)
+    data = data.replace("#canvas_width#", str(canvas_width))
+    data = data.replace("#canvas_height#", str(canvas_height))
     data = data.replace("#image_path#", rel_path.replace("\\", "/"))
     data = data.replace("#width#", str(width))
     data = data.replace("#height#", str(height))
     data = data.replace("#format#", extension)
+    data = data.replace("#zoomlevels#", zltext)
     
     # Save as new scene
     scene_filename = tile_folder + ".js"
-    path = os.path.join(base_folder, scene_filename)
-    if not os.path.exists(path):
-        file = open(path, 'w')
+    scene_path = os.path.join(base_folder, scene_filename)
+    if not os.path.exists(scene_path):
+        file = open(scene_path, 'w')
         file.write(data)
         file.close()
-        print "Written scene to", path
-        
-        # Process the scene
-        process_scene(scene_filename)
-        
+        print "Written scene to", scene_path
     else:
-        print "Scene file already exists:", path
-    
-    
+        print "Scene file already exists:", scene_path
+        
+    # Process the scene
+    process_scene(scene_filename)
+
 def process_scene(rel_path):
 
     # Load scene
     base_folder = os.getcwd()
     scene_folder, scene_filename = os.path.split(rel_path)
     scene_path = os.path.join(base_folder, rel_path)
-    data_string = ''
-    for line in open(scene_path).readlines():
-        data_string += line
-    # Ignore the 'scene = ' assignment, which is not valid JSON:
-    data_string = data_string[8:]
-    scene = json.loads(data_string)["scene"]
+    scene = get_json_scene(scene_path)
     
     # Set global variables
     tileWidth = scene["tilewidth"]
     tileHeight = scene["tileheight"]
     print "Tile size:", (tileWidth, tileHeight)
+    
+    canvasWidth = scene["canvaswidth"]
+    canvasHeight = scene["canvasheight"]
+    print "Canvas size:", (canvasWidth, canvasHeight)
     
     # Tile folder
     tile_folder = scene["tilefolder"]
@@ -176,6 +207,8 @@ def process_scene(rel_path):
     data = file.read()
     file.close()
     data = data.replace("#scene_file#", rel_path)
+    data = data.replace("#canvas_width#", str(canvasWidth))
+    data = data.replace("#canvas_height#", str(canvasHeight))
     title, ext = os.path.splitext(scene_filename)
     path = os.path.join(base_folder, scene_folder, title + ".html")
     if not os.path.exists(path):
@@ -185,6 +218,27 @@ def process_scene(rel_path):
         print "Written html to", path
     else:
         print "Html already exists:", path
+
+def get_json_scene(scene_path):
+    data_string = ''
+    for line in open(scene_path).readlines():
+        data_string += line
+    # Ignore the 'scene = ' assignment, which is not valid JSON:
+    data_string = data_string[8:]
+    return json.loads(data_string)["scene"]
+
+def findIntValueInString(source, match, mask, default):
+    matches = match.split(mask)
+    index1 = source.find(matches[0])
+    if index1 >= 0:
+        index1 += len(matches[0])
+        index2 = source.find(matches[1], index1)
+        val = source[index1:index2]
+        try:
+            return int(val)
+        except:
+            return default
+    return default
     
 if __name__ == "__main__":
     main(sys.argv)
