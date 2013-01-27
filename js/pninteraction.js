@@ -170,8 +170,8 @@ pninteraction.changelevel = function(increment, centerX, centerY) {
     var newSpaceY = spaceY * scale;
     
     // New viewport origin in space
-    pnview.vpx = newSpaceX - canvasX;
-    pnview.vpy = newSpaceY - canvasY;
+    pnview.vpx = Math.floor(newSpaceX - canvasX);
+    pnview.vpy = Math.floor(newSpaceY - canvasY);
     pnview.prevLevel = level;
     pnview.level += increment;
     

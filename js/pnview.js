@@ -64,7 +64,9 @@ pnview.draw = function(doClear) {
     var zoomlevel = scene.scene.zoomlevels[pnview.level];
     
     // Draw the images
-    pnview.context2d.shadowColor="none";
+    pnview.context2d.shadowOffsetX=0;
+    pnview.context2d.shadowOffsetY=0;
+    pnview.context2d.shadowBlur=0;
     var image_indices = zoomlevel.images;
     for (var i=0; i<image_indices.length; i++) {
         var image_index = image_indices[i];
@@ -98,7 +100,7 @@ pnview.draw = function(doClear) {
         pnview.context2d.fillText(label.text, x + tx + 4, y + ty + 2);
     }
     pnview.context2d.stroke();
-    
+    pnview.context2d.shadowBlur=0;
 };
 
 /** Draws the visible tiles of the specified image.
@@ -170,8 +172,8 @@ pnview.drawPnim = function(pnim, zoomlevelScale) {
             if (yi == ny - 1) {
                 h = lastBitY;
             }
-            tile.setRect([x, y, w, h]);
             pnview.activeTiles.push(tile);
+            tile.setRect([x, y, w, h]);
             
             /* off-level rendering:
             if (scale != 1) {
