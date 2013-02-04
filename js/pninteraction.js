@@ -103,31 +103,44 @@ pninteraction.dragDrop = dragDrop;
  */
 pninteraction.STEP = 20;
 pninteraction.processKeyboardInput = function(event) {
+    if (event.shiftKey == 1) {
+        switch(event.keyCode) {
+            case 38: // Up
+                pnview.vpy -= pninteraction.STEP;
+                pninteraction.redrawafterkey(event);
+                break;
+            case 40: // Down
+                pnview.vpy += pninteraction.STEP;
+                pninteraction.redrawafterkey(event);
+                break;
+            case 37: // Left
+                pnview.vpx -= pninteraction.STEP;
+                pninteraction.redrawafterkey(event);
+                break;
+            case 39: // Right
+                pnview.vpx += pninteraction.STEP;
+                pninteraction.redrawafterkey(event);
+                break;
+            case 187: // Equals sign (+shift) (is there a separate code for this plus sign?)
+                pninteraction.changelevel(1, 0.5*pnview.canvas.width, 0.5*pnview.canvas.height);
+                break;
+        }
+    }
     switch(event.keyCode) {
-        case 38: // Up
-            pnview.vpy -= pninteraction.STEP;
-            pnview.draw(true);
-            break;
-        case 40: // Down
-            pnview.vpy += pninteraction.STEP;
-            pnview.draw(true);
-            break;
-        case 37: // Left
-            pnview.vpx -= pninteraction.STEP;
-            pnview.draw(true);
-            break;
-        case 39: // Right
-            pnview.vpx += pninteraction.STEP;
-            pnview.draw(true);
-            break;
         case 107: // +
             pninteraction.changelevel(1, 0.5*pnview.canvas.width, 0.5*pnview.canvas.height);
             break;
         case 109: // -
+        case 189: // -
             pninteraction.changelevel(-1, 0.5*pnview.canvas.width, 0.5*pnview.canvas.height);
             break;
     }
 };
+pninteraction.redrawafterkey = function(e) {
+    pnview.draw(true);
+    e.stopPropagation();
+    e.preventDefault();
+}
 
 /** Mouse wheel handler.
  */
@@ -135,10 +148,14 @@ pninteraction.onmousewheel = function(e) {
     // Browser compatibility stuff
     e = e ? e : window.event;
     var wheelData = e.detail ? e.detail * -1 : e.wheelDelta / 40;
-    
+
     // In/decrement zoom level
     var increment = wheelData < 0 ? -1 : 1;
-    pninteraction.changelevel(increment, e.clientX, e.clientY);
+    pninteraction.changelevel(increment, e.offsetX, e.offsetY);
+    
+    // Don't scroll the page
+    e.stopPropagation();
+    e.preventDefault();
 }
 
 /** Changes level by increment, centering on specified canvas coordinates.
@@ -155,13 +172,9 @@ pninteraction.changelevel = function(increment, centerX, centerY) {
         return;
     }
     
-    // Position of mouse pointer in canvas
-    var canvasX = centerX - pnview.canvas.offsetLeft;
-    var canvasY = centerY - pnview.canvas.offsetTop;
-    
     // Position of mouse pointer in space
-    var spaceX = canvasX + originX;
-    var spaceY = canvasY + originY;
+    var spaceX = centerX + originX;
+    var spaceY = centerY + originY;
     
     var scale = Math.pow(2, increment);
     
@@ -170,8 +183,8 @@ pninteraction.changelevel = function(increment, centerX, centerY) {
     var newSpaceY = spaceY * scale;
     
     // New viewport origin in space
-    pnview.vpx = Math.floor(newSpaceX - canvasX);
-    pnview.vpy = Math.floor(newSpaceY - canvasY);
+    pnview.vpx = Math.floor(newSpaceX - centerX);
+    pnview.vpy = Math.floor(newSpaceY - centerY);
     pnview.prevLevel = level;
     pnview.level += increment;
     
