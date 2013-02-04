@@ -107,10 +107,11 @@ def process_scene(rel_path):
     scene = get_json_scene(scene_path)
     
     # Set global variables
+    title = scene["title"]
+    print "Title: ", title
     tileWidth = scene["tilewidth"]
     tileHeight = scene["tileheight"]
     print "Tile size:", (tileWidth, tileHeight)
-    
     canvasWidth = scene["canvaswidth"]
     canvasHeight = scene["canvasheight"]
     print "Canvas size:", (canvasWidth, canvasHeight)
@@ -206,6 +207,7 @@ def process_scene(rel_path):
     file = open("template.html", 'r')
     data = file.read()
     file.close()
+    data = data.replace("#title#", title)
     data = data.replace("#scene_file#", rel_path)
     data = data.replace("#canvas_width#", str(canvasWidth))
     data = data.replace("#canvas_height#", str(canvasHeight))

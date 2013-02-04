@@ -1,4 +1,5 @@
 scene = {"scene": {
+  "title": "Example scene",
   "tilefolder": "example_tiles",
   "tilewidth": 200,
   "tileheight": 200,

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>P^N Viewer</title>
+  <title>#title#</title>
   
   <script src="#scene_file#"></script>
   <script src="js/pninteraction.js"></script>
@@ -12,9 +12,16 @@
 </head>
 
 <body>
-  <div>
-    <canvas id="pnview" width="#canvas_width#" height="#canvas_height#" style="background-color:#000"></canvas>
-  </div>
-  <div>Drag (or shift + arrow keys) to move, scroll (or +/- keys) to zoom.</div>
+<div align="center"><h1>#title#</h1></div>
+<div align="center">
+  <table border="0">
+  <tr><td>
+    <canvas id="pnview" width="#canvas_width#" height="#canvas_height#" style="background-color:#000" \>
+  </td></tr>
+  <tr><td>
+    <div>Drag (or shift + arrow keys) to move, scroll (or +/- keys) to zoom.</div>
+  </td></tr>
+  </table>
+</div>
 </body>
 </html>
